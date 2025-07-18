@@ -8,7 +8,7 @@ function App() {
 
   const checkPnr = async () => {
     try {
-      const res = await axios.get(`http://localhost:5000/api/pnr/${pnr}`);
+      const res = await axios.get(`https://pnr-status-checker-zkaz.onrender.com/api/pnr/${pnr}`);
       setResult(res.data);
     } catch (err) {
       alert('Error fetching PNR data');
