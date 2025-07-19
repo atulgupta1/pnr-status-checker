@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNR Status Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Optional: Add some basic table styling here or in style.css */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .passenger-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            background-color: #f9f9f9;
+        }
+
+        .passenger-card p {
+            margin-bottom: 5px;
+        }
+        .message-box {
+            background-color: #fff3cd; /* Light yellow background */
+            border: 1px solid #ffeeba; /* Slightly darker border */
+            color: #856404; /* Dark yellow/brown text */
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PNR Status Details</h1>
+        {% if pnr_status.error %}
+            <p class="error">{{ pnr_status.error }}</p>
+        {% elif pnr_status.success == false %} {# Handle API returning success:false #}
+            <div class="message-box">
+                <p><strong>PNR Status Check Failed:</strong> {{ pnr_status.message }}</p>
+                <p>Please ensure the PNR is valid, not too old, and correctly entered.</p>
+            </div>
+        {% elif pnr_status.success and pnr_status.data %} {# Handle API returning success:true and data #}
+            <div class="pnr-details">
+                <h2>PNR Number: {{ pnr_status.data.pnrNumber }}</h2>
+                <p><strong>Train:</strong> {{ pnr_status.data.trainName }} ({{ pnr_status.data.trainNumber }})</p>
+                <p><strong>Date of Journey:</strong> {{ pnr_status.data.dateOfJourney }}</p>
+                <p><strong>Source Station:</strong> {{ pnr_status.data.sourceStation }}</p>
+                <p><strong>Destination Station:</strong> {{ pnr_status.data.destinationStation }}</p>
+                <p><strong>Boarding Point:</strong> {{ pnr_status.data.boardingPoint }}</p>
+                <p><strong>Reservation Upto:</strong> {{ pnr_status.data.reservationUpto }}</p>
+                <p><strong>Journey Class:</strong> {{ pnr_status.data.journeyClass }}</p>
+                <p><strong>Chart Status:</strong> {{ pnr_status.data.chartStatus }}</p>
+                <p><strong>Booking Date:</strong> {{ pnr_status.data.bookingDate }}</p>
+                <p><strong>Total Passengers:</strong> {{ pnr_status.data.numberOfpassenger }}</p>
+                <p><strong>Booking Fare:</strong> ₹{{ pnr_status.data.bookingFare }}</p>
+
+                <h3>Passenger Details:</h3>
+                {% if pnr_status.data.passengerList %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sl. No.</th>
+                                <th>Booking Status</th>
+                                <th>Current Status</th>
+                                <th>Coach</th>
+                                <th>Berth</th>
+                                <th>Quota</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for passenger in pnr_status.data.passengerList %}
+                                <tr>
+                                    <td>{{ passenger.passengerSerialNumber }}</td>
+                                    <td>{{ passenger.bookingStatusDetails }}</td>
+                                    <td>{{ passenger.currentStatusDetails }}</td>
+                                    <td>{% if passenger.bookingCoachId %}{{ passenger.bookingCoachId }}{% else %}-{% endif %}</td>
+                                    <td>{% if passenger.bookingBerthNo %}{{ passenger.bookingBerthNo }}{% else %}-{% endif %}</td>
+                                    <td>{{ passenger.passengerQuota }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No passenger details available.</p>
+                {% endif %}
+
+            </div>
+        {% else %} {# Catch-all for unexpected API responses #}
+            <p class="error">Could not retrieve PNR details due to an unexpected API response. Please try again or with a different PNR.</p>
+        {% endif %}
+        
+        <a href="/">Check Another PNR</a>
+
+        <hr style="margin-top: 30px; margin-bottom: 20px;">
+
+        <div class="legends-section">
+            <h2>Legends</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>CAN / MOD</td><td>Cancelled or Modified Passenger</td></tr>
+                    <tr><td>CNF / Confirmed</td><td>Confirmed (Coach/Berth number will be available after chart preparation)</td></tr>
+                    <tr><td>RAC</td><td>Reservation Against Cancellation</td></tr>
+                    <tr><td>WL #</td><td>Waiting List Number</td></tr>
+                    <tr><td>RLWL</td><td>Remote Location Wait List</td></tr>
+                    <tr><td>GNWL</td><td>General Wait List</td></tr>
+                    <tr><td>PQWL</td><td>Pooled Quota Wait List</td></tr>
+                    <tr><td>REGRET/WL</td><td>No More Booking Permitted</td></tr>
+                    <tr><td>RELEASED</td><td>Ticket Not Cancelled but Alternative Accommodation Provided</td></tr>
+                    <tr><td>R# #</td><td>RAC Coach Number Berth Number</td></tr>
+                    <tr><td>WEBCAN</td><td>Railway Counter Ticket Passenger cancelled through internet and Refund not collected</td></tr>
+                    <tr><td>WEBCANRF</td><td>Railway Counter Ticket Passenger cancelled through internet and Refund collected</td></tr>
+                    <tr><td>RQWL</td><td>Roadside Quota Waitlist</td></tr>
+                    <tr><td>DPWL</td><td>Duty Pass Waitlist</td></tr>
+                    <tr><td>TQWL</td><td>Tatkal Quota Waitlist</td></tr>
+                    <tr><td>NT</td><td>Passenger Not Turned Up</td></tr>
+                    <tr><td>TDR</td><td>Passenger has filed TDR</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</body>
+</html>

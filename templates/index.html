@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PNR Status Check</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Check Your PNR Status</h1>
+        <form action="/check_pnr" method="POST">
+            <input type="text" name="pnr_number" placeholder="Enter 10-digit PNR" required>
+            <button type="submit">Check Status</button>
+        </form>
+    </div>
+</body>
+</html>
